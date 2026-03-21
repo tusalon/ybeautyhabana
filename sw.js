@@ -1,22 +1,22 @@
-// sw.js - Service Worker para Salon bella
+// sw.js - Service Worker para YBEAUTY.HABANA
 
-const CACHE_NAME = 'salon-bella-v1';
+const CACHE_NAME = 'ybeauty-habana-v1';
 const urlsToCache = [
-  '/bellasalon/',
-  '/bellasalon/index.html',
-  '/bellasalon/admin.html',
-  '/bellasalon/admin-login.html',
-  '/bellasalon/setup-wizard.html',
-  '/bellasalon/editar-negocio.html',
-  '/bellasalon/manifest.json',
-  '/bellasalon/icons/icon-72x72.png',
-  '/bellasalon/icons/icon-96x96.png',
-  '/bellasalon/icons/icon-128x128.png',
-  '/bellasalon/icons/icon-144x144.png',
-  '/bellasalon/icons/icon-152x152.png',
-  '/bellasalon/icons/icon-192x192.png',
-  '/bellasalon/icons/icon-384x384.png',
-  '/bellasalon/icons/icon-512x512.png'
+  '/ybeautyhabana/',
+  '/ybeautyhabana/index.html',
+  '/ybeautyhabana/admin.html',
+  '/ybeautyhabana/admin-login.html',
+  '/ybeautyhabana/setup-wizard.html',
+  '/ybeautyhabana/editar-negocio.html',
+  '/ybeautyhabana/manifest.json',
+  '/ybeautyhabana/icons/icon-72x72.png',
+  '/ybeautyhabana/icons/icon-96x96.png',
+  '/ybeautyhabana/icons/icon-128x128.png',
+  '/ybeautyhabana/icons/icon-144x144.png',
+  '/ybeautyhabana/icons/icon-152x152.png',
+  '/ybeautyhabana/icons/icon-192x192.png',
+  '/ybeautyhabana/icons/icon-384x384.png',
+  '/ybeautyhabana/icons/icon-512x512.png'
 ];
 
 // ============================================
@@ -108,7 +108,7 @@ self.addEventListener('fetch', event => {
           }
           // Si no hay cache y es imagen, devolver icon por defecto
           if (event.request.url.match(/\.(jpg|jpeg|png|gif|svg|webp)$/)) {
-            return caches.match('/bellasalon/icons/icon-192x192.png');
+            return caches.match('/ybeautyhabana/icons/icon-192x192.png');
           }
           return new Response('Error de red', { status: 408 });
         });
@@ -138,6 +138,6 @@ self.addEventListener('message', event => {
   }
 });
 
-console.log('✅ Service Worker configurado para Salon bella');
+console.log('✅ Service Worker configurado para YBEAUTY.HABANA');
 console.log('📦 Cache:', CACHE_NAME);
 console.log('📄 Archivos a cachear:', urlsToCache.length);

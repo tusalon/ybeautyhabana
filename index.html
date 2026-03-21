@@ -12,7 +12,7 @@
     <meta name="mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
-    <meta name="apple-mobile-web-app-title" content="Bella">
+    <meta name="apple-mobile-web-app-title" content="YBeauty">
     <link rel="apple-touch-icon" href="icons/icon-192x192.png">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192x192.png">
     
@@ -97,7 +97,7 @@
                 const nombre = await window.getNombreNegocio();
                 if (nombre) {
                     document.title = `${nombre} - Reserva de Turnos`;
-                    document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', nombre.split(' ')[0] || 'Bella');
+                    document.querySelector('meta[name="apple-mobile-web-app-title"]')?.setAttribute('content', nombre.split(' ')[0] || 'YBeauty');
                 }
             } catch (error) {
                 console.error('Error cargando título:', error);

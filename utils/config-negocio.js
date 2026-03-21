@@ -1,12 +1,12 @@
 // utils/config-negocio.js - VERSIÓN MULTI-TENANT CORREGIDA
-// CLIENTE: Salon bella
+// CLIENTE: YBEAUTY.HABANA
 
 console.log('🏢 config-negocio.js cargado');
 
 // ============================================
 // 🔥 CONFIGURACIÓN POR CLIENTE - ¡LO ÚNICO QUE CAMBIA!
 // ============================================
-const NEGOCIO_ID_POR_DEFECTO = 'b0cfb660-8c54-42a0-af16-8b691b699a57'; // ID de Salon bella
+const NEGOCIO_ID_POR_DEFECTO = '4c8c5d8b-5b56-4d33-b977-78cc44a55ed4'; // ID de YBEAUTY.HABANA
 
 // Hacer accesible globalmente
 window.NEGOCIO_ID_POR_DEFECTO = NEGOCIO_ID_POR_DEFECTO;
@@ -116,7 +116,7 @@ window.cargarConfiguracionNegocio = async function(forceRefresh = false) {
  */
 window.getNombreNegocio = async function() {
     const config = await window.cargarConfiguracionNegocio();
-    return config?.nombre || 'Salon bella';
+    return config?.nombre || 'YBEAUTY.HABANA';
 };
 
 /**
@@ -124,7 +124,7 @@ window.getNombreNegocio = async function() {
  */
 window.getTelefonoDuenno = async function() {
     const config = await window.cargarConfiguracionNegocio();
-    return config?.telefono || '56007010';
+    return config?.telefono || '63237870';
 };
 
 /**
@@ -132,7 +132,7 @@ window.getTelefonoDuenno = async function() {
  */
 window.getEmailNegocio = async function() {
     const config = await window.cargarConfiguracionNegocio();
-    return config?.email || 'huertacruzbritny@gmail.com';
+    return config?.email || 'ybeauty.habana@gmail.com';
 };
 
 /**
@@ -164,7 +164,7 @@ window.getHorarioAtencion = async function() {
  */
 window.getMensajeBienvenida = async function() {
     const config = await window.cargarConfiguracionNegocio();
-    return config?.mensaje_bienvenida || '¡Bienvenida a Salon bella!';
+    return config?.mensaje_bienvenida || '¡Bienvenida a YBEAUTY.HABANA!';
 };
 
 /**
@@ -180,7 +180,7 @@ window.getMensajeConfirmacion = async function() {
  */
 window.getNtfyTopic = async function() {
     const config = await window.cargarConfiguracionNegocio();
-    return config?.ntfy_topic || 'salon-bella';
+    return config?.ntfy_topic || 'ybeauty-habana';
 };
 
 /**
@@ -205,5 +205,5 @@ setTimeout(async () => {
     await window.cargarConfiguracionNegocio();
 }, 500);
 
-console.log('✅ config-negocio.js listo para Salon bella');
+console.log('✅ config-negocio.js listo para YBEAUTY.HABANA');
 console.log('🏷️  ID configurado:', NEGOCIO_ID_POR_DEFECTO);
