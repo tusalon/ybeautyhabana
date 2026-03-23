@@ -1,5 +1,4 @@
-// components/ClientAuthScreen.js - VERSIÓN CON SISTEMA DE SOLICITUDES
-// Los clientes nuevos deben enviar solicitud y esperar aprobación
+// components/ClientAuthScreen.js - VERSIÓN REGISTRO AUTOMÁTICO
 
 function ClientAuthScreen({ onAccessGranted, onGoBack }) {
     const [config, setConfig] = React.useState(null);
@@ -13,8 +12,6 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
     const [esProfesional, setEsProfesional] = React.useState(false);
     const [profesionalInfo, setProfesionalInfo] = React.useState(null);
     const [esAdmin, setEsAdmin] = React.useState(false);
-    const [estadoSolicitud, setEstadoSolicitud] = React.useState(null);
-    const [solicitudEnviada, setSolicitudEnviada] = React.useState(false);
 
     // Cargar configuración del negocio y la imagen
     React.useEffect(() => {
@@ -32,199 +29,169 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
         img.onerror = () => setImagenCargada(true);
     }, []);
 
-    // ============================================
-    // FUNCIÓN PARA VERIFICAR NÚMERO (CORREGIDA DEFINITIVA)
-    // ============================================
-    const verificarNumero = async (numero) => {
-        if (numero.length < 8) {
-            setClienteAutorizado(null);
-            setEsProfesional(false);
-            setProfesionalInfo(null);
-            setEsAdmin(false);
-            setEstadoSolicitud(null);
-            setSolicitudEnviada(false);
-            setError('');
-            return;
-        }
-        
-        setVerificando(true);
-        
-        const numeroLimpio = numero.replace(/\D/g, '');
-        const numeroCompleto = `53${numeroLimpio}`;
-        
-        try {
-            // 🔥 VERIFICAR SI ES ADMIN (DUEÑO) - VERSIÓN CORREGIDA DEFINITIVA
-            if (numeroLimpio === config?.telefono?.replace(/\D/g, '')) {
-                console.log('👑 Número de administradora detectado');
-                
-                // 🔥 OBTENER EL NEGOCIO_ID CORRECTO
-                const negocioId = window.NEGOCIO_ID_POR_DEFECTO || 
-                                  (typeof window.getNegocioId === 'function' ? 
-                                   window.getNegocioId() : 
-                                   '47666c9b-afa1-4286-a727-0e30f86611af');
-                
-                // 🔥 LIMPIAR CUALQUIER ID ANTERIOR
-                localStorage.removeItem('negocioId');
-                localStorage.removeItem('negocioNombre');
-                
-                // 🔥 GUARDAR EL ID CORRECTO
-                localStorage.setItem('negocioId', negocioId);
-                localStorage.setItem('negocioNombre', config?.nombre || 'Negocio de Prueba');
-                
-                console.log('✅ negocioId guardado en localStorage:', negocioId);
-                console.log('✅ negocioNombre guardado:', config?.nombre);
-                
-                // Verificar si ya tiene sesión activa
-                const loginTime = localStorage.getItem('adminLoginTime');
-                const tieneSesion = loginTime && (Date.now() - parseInt(loginTime)) < 8 * 60 * 60 * 1000;
-                
-                if (tieneSesion) {
-                    console.log('➡️ Redirigiendo a admin.html');
-                    window.location.href = 'admin.html';
-                } else {
-                    console.log('➡️ Redirigiendo a admin-login.html');
-                    window.location.href = 'admin-login.html';
-                }
-                return;
-            }
-            
-            // Verificar si es PROFESIONAL
-            if (window.verificarProfesionalPorTelefono) {
-                const profesional = await window.verificarProfesionalPorTelefono(numeroLimpio);
-                if (profesional) {
-                    setEsProfesional(true);
-                    setProfesionalInfo(profesional);
-                    setEsAdmin(false);
-                    setClienteAutorizado(null);
-                    setEstadoSolicitud(null);
-                    setSolicitudEnviada(false);
-                    setVerificando(false);
-                    return;
-                }
-            }
-            
-            // Verificar si es CLIENTE AUTORIZADO
-            const existe = await window.verificarAccesoCliente(numeroCompleto);
-            
-            if (existe) {
-                setClienteAutorizado(existe);
-                setEsProfesional(false);
-                setEsAdmin(false);
-                setEstadoSolicitud(null);
-                setSolicitudEnviada(false);
-                setError('');
-                setVerificando(false);
-                return;
-            }
-            
-            // Si no es cliente autorizado, verificar si tiene solicitud pendiente
-            if (window.obtenerEstadoSolicitud) {
-                const estado = await window.obtenerEstadoSolicitud(numeroLimpio);
-                setEstadoSolicitud(estado);
-                
-                if (estado === 'pendiente') {
-                    setSolicitudEnviada(true);
-                } else if (estado === 'rechazado') {
-                    // Si fue rechazado, se puede volver a solicitar
-                    setSolicitudEnviada(false);
-                    setEstadoSolicitud(null);
-                } else {
-                    setSolicitudEnviada(false);
-                }
-            }
-            
-            setClienteAutorizado(null);
-            setEsProfesional(false);
-            setEsAdmin(false);
-            setError('');
-            
-        } catch (err) {
-            console.error('Error verificando:', err);
-        } finally {
-            setVerificando(false);
-        }
-    };
-
-    // ============================================
-    // HANDLE SUBMIT CORREGIDO - CON SISTEMA DE SOLICITUDES
-    // ============================================
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        
-        if (!nombre.trim() || !whatsapp.trim()) {
-            setError('Completá todos los campos');
-            return;
-        }
-        
-        // Si es admin o profesional, no hacer nada (ya tienen su flujo)
-        if (esAdmin || esProfesional) {
-            return;
-        }
-        
-        setVerificando(true);
+   // ============================================
+// FUNCIÓN PARA VERIFICAR NÚMERO (CORREGIDA DEFINITIVA)
+// ============================================
+const verificarNumero = async (numero) => {
+    if (numero.length < 8) {
+        setClienteAutorizado(null);
+        setEsProfesional(false);
+        setProfesionalInfo(null);
+        setEsAdmin(false);
         setError('');
-        
-        const numeroLimpio = whatsapp.replace(/\D/g, '');
-        const numeroCompleto = `53${numeroLimpio}`;
-        
-        try {
-            // 🔥 PASO 1: Verificar si ya es cliente autorizado
-            console.log('🔍 Verificando si es cliente autorizado...');
-            const autorizado = await window.verificarAccesoCliente(numeroCompleto);
+        return;
+    }
+    
+    setVerificando(true);
+    
+    const numeroLimpio = numero.replace(/\D/g, '');
+    const numeroCompleto = `53${numeroLimpio}`;
+    
+    try {
+        // 🔥 VERIFICAR SI ES ADMIN (DUEÑO) - VERSIÓN CORREGIDA DEFINITIVA
+        if (numeroLimpio === config?.telefono?.replace(/\D/g, '')) {
+            console.log('👑 Número de administradora detectado para Negocio de Prueba');
             
-            if (autorizado) {
-                console.log('✅ Cliente autorizado, acceso directo');
-                // Guardar negocioId en localStorage
-                const negocioId = window.NEGOCIO_ID_POR_DEFECTO || 
-                                  (typeof window.getNegocioId === 'function' ? 
-                                   window.getNegocioId() : null);
-                if (negocioId) {
-                    localStorage.setItem('negocioId', negocioId);
-                }
-                onAccessGranted(autorizado.nombre, numeroCompleto);
-                setVerificando(false);
-                return;
-            }
+            // 🔥 OBTENER EL NEGOCIO_ID CORRECTO
+            const negocioId = window.NEGOCIO_ID_POR_DEFECTO || 
+                              (typeof window.getNegocioId === 'function' ? 
+                               window.getNegocioId() : 
+                               'd4f7e2b1-3a8c-4b6d-9e5f-1c2d3e4f5a6b');
             
-            // 🔥 PASO 2: Verificar si tiene solicitud pendiente
-            console.log('🔍 Verificando estado de solicitud...');
-            const estado = await window.obtenerEstadoSolicitud(numeroLimpio);
+            // 🔥 LIMPIAR CUALQUIER ID ANTERIOR
+            localStorage.removeItem('negocioId');
+            localStorage.removeItem('negocioNombre');
             
-            if (estado === 'pendiente') {
-                setError('⚠️ Ya enviaste una solicitud. Estamos procesándola, en breve recibirás respuesta.');
-                setVerificando(false);
-                return;
-            }
+            // 🔥 GUARDAR EL ID CORRECTO
+            localStorage.setItem('negocioId', negocioId);
+            localStorage.setItem('negocioNombre', config?.nombre || 'Negocio de Prueba');
             
-            // 🔥 PASO 3: Enviar nueva solicitud (borra automáticamente anteriores)
-            console.log('📝 Enviando nueva solicitud...');
-            const resultado = await window.solicitarRegistroCliente(nombre, numeroLimpio);
+            console.log('✅ negocioId guardado en localStorage:', negocioId);
+            console.log('✅ negocioNombre guardado:', config?.nombre);
             
-            if (resultado.success && resultado.yaAutorizado) {
-                // Caso raro: ya era autorizado (doble check)
-                console.log('✅ Cliente ya autorizado (doble check)');
-                onAccessGranted(resultado.cliente.nombre, numeroCompleto);
-            } else if (resultado.success) {
-                setSolicitudEnviada(true);
-                setError('✅ Solicitud enviada correctamente. Recibirás confirmación cuando sea aprobada.');
-                setNombre('');
-                setWhatsapp('');
-                // No redirigir, solo mostrar mensaje de éxito
+            // Verificar si ya tiene sesión activa
+            const loginTime = localStorage.getItem('adminLoginTime');
+            const tieneSesion = loginTime && (Date.now() - parseInt(loginTime)) < 8 * 60 * 60 * 1000;
+            
+            if (tieneSesion) {
+                console.log('➡️ Redirigiendo a admin.html');
+                window.location.href = 'admin.html';
             } else {
-                setError('❌ Error al enviar la solicitud. Intentá más tarde.');
+                console.log('➡️ Redirigiendo a admin-login.html');
+                window.location.href = 'admin-login.html';
             }
-            
-        } catch (err) {
-            console.error('❌ Error en submit:', err);
-            setError('Error en el sistema. Intentá más tarde.');
-        } finally {
-            setVerificando(false);
+            return;
         }
-    };
+        
+        // Verificar si es PROFESIONAL
+        if (window.verificarProfesionalPorTelefono) {
+            const profesional = await window.verificarProfesionalPorTelefono(numeroLimpio);
+            if (profesional) {
+                setEsProfesional(true);
+                setProfesionalInfo(profesional);
+                setEsAdmin(false);
+                setClienteAutorizado(null);
+                setVerificando(false);
+                return;
+            }
+        }
+        
+        // Verificar si es CLIENTE AUTORIZADO
+        const existe = await window.verificarAccesoCliente(numeroCompleto);
+        
+        if (existe) {
+            setClienteAutorizado(existe);
+            setEsProfesional(false);
+            setEsAdmin(false);
+            setError('');
+        } else {
+            setClienteAutorizado(null);
+            setError('');
+        }
+    } catch (err) {
+        console.error('Error verificando:', err);
+    } finally {
+        setVerificando(false);
+    }
+};
+    // ============================================
+// FUNCIÓN CORREGIDA - REGISTRO AUTOMÁTICO CON MEJOR VERIFICACIÓN
+// ============================================
+const handleSubmit = async (e) => {
+    e.preventDefault();
+    
+    if (!nombre.trim() || !whatsapp.trim()) {
+        setError('Completá todos los campos');
+        return;
+    }
+    
+    if (esAdmin || esProfesional) {
+        return;
+    }
+    
+    setVerificando(true);
+    
+    const numeroLimpio = whatsapp.replace(/\D/g, '');
+    const numeroCompleto = `53${numeroLimpio}`;
+    
+    try {
+        // Verificar si ya existe como cliente autorizado
+        const autorizado = await window.verificarAccesoCliente(numeroCompleto);
+        
+        if (autorizado) {
+            console.log('✅ Cliente encontrado, acceso directo:', autorizado);
+            onAccessGranted(autorizado.nombre, numeroCompleto);
+            return;
+        }
+        
+        // Si no existe según la primera verificación, 
+        // intentamos una búsqueda más directa
+        console.log('⚠️ Cliente no encontrado en primera verificación, buscando directamente...');
+        
+        const negocioId = window.NEGOCIO_ID_POR_DEFECTO || 
+                          (typeof window.getNegocioId === 'function' ? 
+                           window.getNegocioId() : 
+                           'd4f7e2b1-3a8c-4b6d-9e5f-1c2d3e4f5a6b');
+        
+        // Búsqueda directa en la tabla
+        const response = await fetch(
+            `${window.SUPABASE_URL}/rest/v1/clientes_autorizados?negocio_id=eq.${negocioId}&whatsapp=eq.${numeroCompleto}&select=*`,
+            {
+                headers: {
+                    'apikey': window.SUPABASE_ANON_KEY,
+                    'Authorization': `Bearer ${window.SUPABASE_ANON_KEY}`
+                }
+            }
+        );
+        
+        if (response.ok) {
+            const data = await response.json();
+            if (data && data.length > 0) {
+                console.log('✅ Cliente encontrado en búsqueda directa:', data[0]);
+                onAccessGranted(data[0].nombre, numeroCompleto);
+                return;
+            }
+        }
+        
+        // Si realmente no existe, CREARLO
+        console.log('➕ Cliente no existe, creando nuevo:', nombre, numeroCompleto);
+        const nuevoCliente = await window.crearCliente(nombre, numeroCompleto);
+        
+        if (nuevoCliente) {
+            console.log('✅ Cliente creado automáticamente:', nuevoCliente);
+            onAccessGranted(nuevoCliente.nombre, numeroCompleto);
+        } else {
+            setError('Error al crear el cliente. Intentá más tarde.');
+        }
+    } catch (err) {
+        console.error('Error en submit:', err);
+        setError('Error en el sistema. Intentá más tarde.');
+    } finally {
+        setVerificando(false);
+    }
+};
 
-    // ============================================
-    // ACCESO DIRECTO PARA CLIENTE AUTORIZADO
-    // ============================================
+    // 🔥 FUNCIÓN CORREGIDA - USA EL ID DE CONFIG-NEGOCIO.JS
     const handleAccesoDirecto = () => {
         if (clienteAutorizado) {
             const numeroLimpio = whatsapp.replace(/\D/g, '');
@@ -234,7 +201,7 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
             const negocioId = window.NEGOCIO_ID_POR_DEFECTO || 
                               (typeof window.getNegocioId === 'function' ? 
                                window.getNegocioId() : 
-                               '47666c9b-afa1-4286-a727-0e30f86611af');
+                               'd4f7e2b1-3a8c-4b6d-9e5f-1c2d3e4f5a6b');
             
             localStorage.setItem('negocioId', negocioId);
             
@@ -258,11 +225,13 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
     }
 
     const colorPrimario = config?.color_primario || '#ec4899';
+    const colorSecundario = config?.color_secundario || '#f9a8d4';
     const nombreNegocio = config?.nombre || 'Mi Salón';
+    const telefonoDuenno = config?.telefono || '55002272';
+    const logoUrl = config?.logo_url;
     const sticker = config?.especialidad?.toLowerCase().includes('uñas') ? '💅' : 
                     config?.especialidad?.toLowerCase().includes('pelo') ? '💇‍♀️' : 
                     config?.especialidad?.toLowerCase().includes('belleza') ? '🌸' : '💖';
-    const logoUrl = config?.logo_url;
 
     return (
         <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden">
@@ -323,10 +292,10 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
                                 value={nombre}
                                 onChange={(e) => setNombre(e.target.value)}
                                 className={`w-full px-4 py-3 rounded-lg border border-pink-300/30 bg-white/10 text-white placeholder-pink-200/70 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition ${
-                                    esAdmin || esProfesional || solicitudEnviada ? 'opacity-60 cursor-not-allowed' : ''
+                                    esAdmin || esProfesional ? 'opacity-60 cursor-not-allowed' : ''
                                 }`}
                                 placeholder="Ej: María Pérez"
-                                disabled={esAdmin || esProfesional || solicitudEnviada}
+                                disabled={esAdmin || esProfesional}
                             />
                         </div>
 
@@ -347,12 +316,9 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
                                         setWhatsapp(value);
                                         verificarNumero(value);
                                     }}
-                                    className={`w-full px-4 py-3 rounded-r-lg border border-pink-300/30 bg-white/10 text-white placeholder-pink-200/70 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition ${
-                                        esAdmin || esProfesional || solicitudEnviada ? 'opacity-60 cursor-not-allowed' : ''
-                                    }`}
+                                    className="w-full px-4 py-3 rounded-r-lg border border-pink-300/30 bg-white/10 text-white placeholder-pink-200/70 focus:ring-2 focus:ring-pink-500 focus:border-transparent outline-none transition"
                                     placeholder="51234567"
                                     required
-                                    disabled={esAdmin || esProfesional || solicitudEnviada}
                                 />
                             </div>
                             <p className="text-xs text-pink-300/70 mt-1">
@@ -405,28 +371,8 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
                             </div>
                         )}
 
-                        {/* Mensaje de solicitud pendiente */}
-                        {solicitudEnviada && !verificando && !esAdmin && !esProfesional && (
-                            <div className="bg-yellow-500/30 border border-yellow-500/50 rounded-lg p-4">
-                                <div className="flex items-start gap-3">
-                                    <div className="w-12 h-12 bg-yellow-500 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg">
-                                        ⏳
-                                    </div>
-                                    <div className="flex-1">
-                                        <p className="text-white font-bold text-lg">
-                                            ¡Solicitud Enviada!
-                                        </p>
-                                        <p className="text-yellow-200 text-sm">
-                                            Tu solicitud está siendo procesada. En breve recibirás confirmación cuando sea aprobada.
-                                        </p>
-                                    </div>
-                                </div>
-                            </div>
-                        )}
-
-                        {/* Mensaje de cliente autorizado */}
                         {clienteAutorizado && !verificando && !esAdmin && !esProfesional && (
-                            <div className="bg-green-500/30 border border-green-500/30 rounded-lg p-4">
+                            <div className="bg-green-500/20 border border-green-500/30 rounded-lg p-4">
                                 <div className="flex items-start gap-3">
                                     <div className="w-12 h-12 bg-green-500 rounded-full flex items-center justify-center text-2xl font-bold text-white shadow-lg">
                                         C
@@ -444,7 +390,7 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
                         )}
 
                         {/* Mensajes de error */}
-                        {error && !esAdmin && !esProfesional && !solicitudEnviada && (
+                        {error && !esAdmin && !esProfesional && (
                             <div className="text-sm p-3 rounded-lg flex items-start gap-2 bg-red-500/20 text-red-300 border border-red-500/30">
                                 <i className="icon-triangle-alert mt-0.5"></i>
                                 <span>{error}</span>
@@ -499,23 +445,16 @@ function ClientAuthScreen({ onAccessGranted, onGoBack }) {
                                 </button>
                             )}
 
-                            {!clienteAutorizado && !esAdmin && !esProfesional && !solicitudEnviada && !verificando && (
+                            {!clienteAutorizado && !esAdmin && !esProfesional && !verificando && (
                                 <button
                                     type="submit"
                                     disabled={verificando}
                                     className="w-full bg-pink-500 text-white py-4 rounded-xl font-bold hover:bg-pink-600 transition transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 shadow-lg text-lg border-2 border-pink-300"
                                 >
                                     <span className="text-xl">💅</span>
-                                    {verificando ? 'Verificando...' : 'Enviar Solicitud de Registro'}
+                                    {verificando ? 'Verificando...' : 'Registrarme y Reservar'}
                                     <span className="text-xl">✨</span>
                                 </button>
-                            )}
-
-                            {solicitudEnviada && !verificando && !esAdmin && !esProfesional && (
-                                <div className="text-center text-white/80 text-sm bg-pink-500/20 p-3 rounded-lg">
-                                    <p>✅ Solicitud enviada</p>
-                                    <p className="text-xs mt-1">Te avisaremos cuando sea aprobada</p>
-                                </div>
                             )}
                         </div>
                     </form>
