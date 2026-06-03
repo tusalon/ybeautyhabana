@@ -30,6 +30,10 @@ function Confirmation({ booking, onReset }) {
     const fechaConDia = window.formatFechaCompleta ? 
         window.formatFechaCompleta(booking.fecha) : 
         booking.fecha;
+    const calendarLink = window.generarLinkCalendarioCliente ? 
+        window.generarLinkCalendarioCliente(booking) : 
+        '';
+    const telefonoContacto = window.formatearTelefono ? window.formatearTelefono(telefonoDuenno) : `+${telefonoDuenno}`;
 
     return (
         <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-6 animate-fade-in bg-gradient-to-b from-pink-50 to-pink-100">
@@ -89,6 +93,18 @@ function Confirmation({ booking, onReset }) {
             </div>
 
             <div className="flex flex-col gap-3 w-full max-w-xs">
+                {calendarLink && (
+                    <a
+                        href={calendarLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full bg-white text-pink-700 border-2 border-pink-300 py-4 rounded-xl font-bold hover:bg-pink-50 transition-colors flex items-center justify-center gap-2 text-lg shadow-sm"
+                    >
+                        <i className="icon-calendar text-xl"></i>
+                        Agregar al calendario
+                    </a>
+                )}
+
                 <button 
                     onClick={onReset}
                     className="w-full bg-pink-500 text-white py-4 rounded-xl font-bold hover:bg-pink-600 transition-colors flex items-center justify-center gap-2 text-lg shadow-md"
@@ -100,7 +116,7 @@ function Confirmation({ booking, onReset }) {
                 
                 <div className="text-sm text-pink-600 bg-white/80 backdrop-blur-sm p-4 rounded-lg flex items-center justify-center gap-2 border border-pink-300">
                    <span className="text-pink-500 text-xl">📱</span>
-                   <span>Contacto: +{telefonoDuenno}</span>
+                   <span>Contacto: {telefonoContacto}</span>
                 </div>
             </div>
         </div>
